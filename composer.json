@@ -1,0 +1,20 @@
+{
+  "name": "oliveoilexpert/typo3-copy-presets",
+  "type": "typo3-cms-extension",
+  "description": "Copy Presets",
+  "license": "GPL-2.0-or-later",
+  "require": {
+    "typo3/cms-core": "^13.0",
+    "typo3/cms-backend": "^13.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "UBOS\\CopyPresets\\": "Classes/"
+    }
+  },
+  "extra": {
+    "typo3/cms": {
+      "extension-key": "copy_presets"
+    }
+  }
+}
