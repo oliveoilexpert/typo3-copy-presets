@@ -56,13 +56,11 @@ class CopyPresetWizard {
 		try {
 			const url = new URL(urlAttr, window.location.origin);
 			const params = new URLSearchParams(url.search);
-			const id = params.get('id');
-			const colPos = params.get('colPos');
-			const uidPid = params.get('uid_pid');
-			const languageId = params.get('sys_language_uid');
-			const returnUrl = params.get('returnUrl');
-			if (id) {
-				return {id, colPos, uidPid, languageId, returnUrl}
+			return {
+				colPos: params.get('colPos'),
+				uidPid: params.get('uid_pid'),
+				languageId: params.get('sys_language_uid'),
+				returnUrl: params.get('returnUrl')
 			}
 		} catch (e) {
 			console.error('Failed to parse URL:', e);

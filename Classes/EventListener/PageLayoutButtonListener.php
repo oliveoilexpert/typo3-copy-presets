@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace UBOS\CopyPresets\EventListener;
 
-use TYPO3\CMS\Backend\Controller\Event\ModifyPageLayoutContentEvent;
+use TYPO3\CMS\Core\Attribute\AsEventListener;
 use TYPO3\CMS\Core\Page\PageRenderer;
+use TYPO3\CMS\Backend\Controller\Event\ModifyPageLayoutContentEvent;
 use TYPO3\CMS\Backend\Routing\UriBuilder;
 use UBOS\CopyPresets\Service\CopyPresetService;
 
@@ -17,6 +18,7 @@ class PageLayoutButtonListener
 		private readonly PageRenderer $pageRenderer
 	) {}
 
+	#[AsEventListener]
 	public function __invoke(ModifyPageLayoutContentEvent $event): void
 	{
 		$request = $event->getRequest();
@@ -47,14 +49,10 @@ class PageLayoutButtonListener
 					subject="Copy from preset"
 					role="button" 
 					subject="Copy Preset" 
+					style="margin-left: 4.5px"
 					tabindex="0" >
-								<span class="icon icon-size-small">
-								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
-						<rect x="1" y="1" width="9" height="11" fill="none" stroke="currentColor" stroke-width="1.5" rx="1"/>
-						<rect x="6" y="4" width="9" height="11" fill="none" stroke="currentColor" stroke-width="1.5" rx="1"/>
-					</svg>
-					</span>
-					Copy preset
+					<typo3-backend-icon 
+					size="small" identifier="actions-copy-preset"></typo3-backend-icon>
 				</typo3-backend-new-content-element-wizard-button>
 			</template>
 			<script type="application/json" id="tx-copy-presets-config">' .

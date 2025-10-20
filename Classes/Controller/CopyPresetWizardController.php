@@ -4,21 +4,27 @@ declare(strict_types=1);
 
 namespace UBOS\CopyPresets\Controller;
 
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Http\RedirectResponse;
 use TYPO3\CMS\Core\Http\HtmlResponse;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use UBOS\CopyPresets\Service\CopyPresetService;
 use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Backend\View\BackendViewFactory;
+use TYPO3\CMS\Core\Messaging\FlashMessage;
+use TYPO3\CMS\Core\Messaging\FlashMessageService;
+use TYPO3\CMS\Core\Type\ContextualFeedbackSeverity;
+use UBOS\CopyPresets\Service\CopyPresetService;
 
+#[Autoconfigure(public: true)]
 class CopyPresetWizardController
 {
 	public function __construct(
 		private readonly CopyPresetService $copyPresetService,
 		private readonly UriBuilder $uriBuilder,
 		private readonly BackendViewFactory $backendViewFactory,
+		private readonly FlashMessageService $flashMessageService,
 	) {}
 
 	/**
@@ -32,7 +38,7 @@ class CopyPresetWizardController
 		$colPos = (int)($queryParams['colPos'] ?? 0);
 		$uidPid = (int)($queryParams['uid_pid'] ?? 0);
 
-		// Get grouped presets
+		// Get grouped presets - automatically filtered by user permissions
 		$groupedPresets = $this->copyPresetService->getGroupedPresets();
 
 		if (empty($groupedPresets)) {
@@ -49,6 +55,7 @@ class CopyPresetWizardController
 					'copy_preset_execute',
 					[
 						'preset_uid' => $element['uid'],
+						'preset_pid' => $group['pageUid'],
 						'id' => $targetPid,
 						'sys_language_uid' => $languageUid,
 						'colPos' => $colPos,
@@ -88,29 +95,84 @@ class CopyPresetWizardController
 	public function executeCopyAction(ServerRequestInterface $request): ResponseInterface
 	{
 		$queryParams = $request->getQueryParams();
+		$presetUid = (int)($queryParams['preset_uid'] ?? 0);
+		$presetPid = (int)($queryParams['preset_pid'] ?? 0);
 		$targetPid = (int)($queryParams['id'] ?? 0);
-		$languageUid = (int)($queryParams['sys_language_uid'] ?? 0);
 		$colPos = (int)($queryParams['colPos'] ?? 0);
 		$uidPid = (int)($queryParams['uid_pid'] ?? 0);
-		$presetUid = (int)($queryParams['preset_uid'] ?? 0);
-		$returnUrl = (string)($queryParams['returnUrl'] ?? '');
+		$languageUid = (int)($queryParams['sys_language_uid'] ?? 0);
 
 		if ($presetUid === 0 || $targetPid === 0) {
-			// Redirect back on error
+			$this->addFlashMessage(
+				'Invalid parameters provided for copy operation.',
+				'Copy Error',
+				ContextualFeedbackSeverity::ERROR
+			);
 			return $this->redirectToPageModule($targetPid);
 		}
 
-		// Perform the copy
-		$this->copyPresetService->copyPreset(
-			$presetUid,
-			$targetPid,
-			$colPos,
-			$uidPid,
-			$languageUid
-		);
+		try {
+			// Perform the copy - this will throw exception if user lacks permission
+			$newUid = $this->copyPresetService->copyPreset(
+				$presetUid,
+				$presetPid,
+				$targetPid,
+				$colPos,
+				$uidPid,
+				$languageUid
+			);
+
+			if ($newUid) {
+				$this->addFlashMessage(
+					'Content element has been successfully copied.',
+					'Copy Successful',
+					ContextualFeedbackSeverity::OK
+				);
+			} else {
+				$this->addFlashMessage(
+					'Failed to copy content element. Please try again.',
+					'Copy Failed',
+					ContextualFeedbackSeverity::WARNING
+				);
+			}
+		} catch (\RuntimeException $e) {
+			// Permission denied or other runtime error
+			$this->addFlashMessage(
+				$e->getMessage(),
+				'Permission Denied',
+				ContextualFeedbackSeverity::ERROR
+			);
+		} catch (\Exception $e) {
+			// Unexpected error
+			$this->addFlashMessage(
+				'An unexpected error occurred: ' . $e->getMessage(),
+				'Error',
+				ContextualFeedbackSeverity::ERROR
+			);
+		}
 
 		// Redirect back to page module
 		return $this->redirectToPageModule($targetPid);
+	}
+
+	/**
+	 * Add a flash message to the queue
+	 */
+	private function addFlashMessage(
+		string $message,
+		string $title,
+		ContextualFeedbackSeverity $severity
+	): void {
+		$flashMessage = GeneralUtility::makeInstance(
+			FlashMessage::class,
+			$message,
+			$title,
+			$severity,
+			true
+		);
+
+		$messageQueue = $this->flashMessageService->getMessageQueueByIdentifier();
+		$messageQueue->enqueue($flashMessage);
 	}
 
 	/**

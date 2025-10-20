@@ -6,14 +6,3 @@ services:
 
   UBOS\CopyPresets\:
     resource: '../Classes/*'
-    exclude: '../Classes/Controller/*'
-
-  UBOS\CopyPresets\Controller\:
-    resource: '../Classes/Controller/*'
-    public: true
-
-  UBOS\CopyPresets\EventListener\PageLayoutButtonListener:
-    tags:
-      - name: event.listener
-        identifier: 'copy-presets/page-layout-button'
-        event: TYPO3\CMS\Backend\Controller\Event\ModifyPageLayoutContentEvent

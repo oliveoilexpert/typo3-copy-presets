@@ -8,6 +8,8 @@ use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Imaging\IconFactory;
+use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
+use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
 
 class CopyPresetService
 {
@@ -17,29 +19,66 @@ class CopyPresetService
 	) {}
 
 	/**
-	 * Get all copy preset pages (doktype = 200)
+	 * Get the current backend user
+	 */
+	private function getBackendUser(): BackendUserAuthentication
+	{
+		return $GLOBALS['BE_USER'];
+	}
+
+	/**
+	 * Get all copy preset pages (doktype = 200) that the user has access to
 	 */
 	public function getCopyPresetPages(): array
 	{
+		$backendUser = $this->getBackendUser();
 		$queryBuilder = $this->connectionPool->getQueryBuilderForTable('pages');
-		$queryBuilder->getRestrictions()->removeAll();
 
-		return $queryBuilder
-			->select('uid', 'title')
+		// Keep default restrictions but allow hidden preset pages
+		$queryBuilder->getRestrictions()
+			->removeByType(\TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction::class);
+
+		$queryBuilder
+			->select('uid', 'title', 'perms_everybody', 'perms_userid', 'perms_user', 'perms_groupid', 'perms_group')
 			->from('pages')
 			->where(
 				$queryBuilder->expr()->eq(
 					'doktype',
 					$queryBuilder->createNamedParameter(200)
 				)
-			)
-			->orderBy('title')
+			);
+
+		// Add page permissions WHERE clause - user must have read permission
+		if (!$backendUser->isAdmin()) {
+			$permissionClause = $backendUser->getPagePermsClause(1);
+			if ($permissionClause) {
+				$queryBuilder->andWhere($permissionClause);
+			}
+		}
+
+		$queryBuilder->orderBy('title');
+
+		$pages = $queryBuilder
 			->executeQuery()
 			->fetchAllAssociative();
+
+		// Filter by DB mounts - user must have access via their mount points
+		if (!$backendUser->isAdmin()) {
+			$accessiblePages = [];
+			foreach ($pages as $page) {
+				if ($backendUser->doesUserHaveAccess($page, 1)) {
+					$accessiblePages[] = $page;
+				}
+			}
+			return $accessiblePages;
+		}
+
+		return $pages;
 	}
 
 	/**
 	 * Get all content elements from copy preset pages, grouped by page
+	 * Only returns elements from pages the user has access to
 	 */
 	public function getGroupedPresets(): array
 	{
@@ -52,7 +91,10 @@ class CopyPresetService
 		$pageUids = array_column($presetPages, 'uid');
 
 		$queryBuilder = $this->connectionPool->getQueryBuilderForTable('tt_content');
-		$queryBuilder->getRestrictions()->removeAll();
+
+		// Keep default restrictions but allow hidden content in preset pages
+		$queryBuilder->getRestrictions()
+			->removeByType(\TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction::class);
 
 		$contentElements = $queryBuilder
 			->select('uid', 'pid', 'CType', 'header', 'colPos')
@@ -93,32 +135,52 @@ class CopyPresetService
 
 	/**
 	 * Copy a content element to a target position using DataHandler
+	 * Uses the same command structure as TYPO3's standard copy/paste functionality
+	 * This ensures all hooks (including b13/container) are properly triggered
+	 *
+	 * @throws \RuntimeException if user doesn't have permission to copy the element
 	 */
-	public function copyPreset(int $presetUid, int $targetPid, int $targetColPos, int $uidPid, int $sysLanguageUid = 0): ?int
+	public function copyPreset(int $presetUid, int $presetPid, int $targetPid, int $targetColPos, int $uidPid, int $sysLanguageUid = 0): ?int
 	{
+		// Verify user has access to the preset element's page
+		if (!$this->canUserCopyElement($presetUid, $presetPid)) {
+			throw new \RuntimeException(
+				'Access denied: You do not have permission to copy this content element.',
+				1234567890
+			);
+		}
+
+		// Initialize DataHandler
 		$dataHandler = GeneralUtility::makeInstance(DataHandler::class);
 
 		// Build the target specification
-		// If uidPid is negative, it means "after element with abs(uidPid)"
-		// If uidPid is positive or 0, use targetPid
 		if ($uidPid < 0) {
-			// Insert after specific element
-			$target = $uidPid; // Already negative
+			// Insert after specific element (negative value)
+			$target = $uidPid;
 		} else {
-			// Insert at beginning of column
+			// Insert at beginning of page/column
 			$target = $targetPid;
 		}
 
-		// Prepare copy command
+		// Use the extended copy command format with 'update' array
+		// This is the same format used by TYPO3's standard copy/paste buttons
+		// and ensures all DataHandler hooks (including container extension) work correctly
 		$cmd = [
 			'tt_content' => [
 				$presetUid => [
-					'copy' => $target,
+					'copy' => [
+						'action' => 'paste',
+						'target' => $target,
+						'update' => [
+							'colPos' => $targetColPos,
+							'sys_language_uid' => $sysLanguageUid,
+						],
+					],
 				],
 			],
 		];
 
-		// Execute the copy
+		// Execute the copy command
 		$dataHandler->start([], $cmd);
 		$dataHandler->process_cmdmap();
 
@@ -126,23 +188,46 @@ class CopyPresetService
 		$newUid = null;
 		if (!empty($dataHandler->copyMappingArray_merged['tt_content'][$presetUid])) {
 			$newUid = (int)$dataHandler->copyMappingArray_merged['tt_content'][$presetUid];
-
-			// Now update colPos and sys_language_uid if needed
-			if ($newUid > 0) {
-				$data = [
-					'tt_content' => [
-						$newUid => [
-							'colPos' => $targetColPos,
-							'sys_language_uid' => $sysLanguageUid,
-						],
-					],
-				];
-				$dataHandler = GeneralUtility::makeInstance(DataHandler::class);
-				$dataHandler->start($data, []);
-				$dataHandler->process_datamap();
-			}
 		}
 
 		return $newUid;
+	}
+
+	/**
+	 * Check if the current user has permission to copy a content element
+	 */
+	private function canUserCopyElement(int $contentUid, int $pageUid): bool
+	{
+		$backendUser = $this->getBackendUser();
+
+		// Admin users can copy everything
+		if ($backendUser->isAdmin()) {
+			return true;
+		}
+
+		// Check if page is a preset page (doktype 200)
+		$queryBuilder = $this->connectionPool->getQueryBuilderForTable('pages');
+		$queryBuilder->getRestrictions()
+			->removeAll()
+			->add(GeneralUtility::makeInstance(DeletedRestriction::class));
+
+		$page = $queryBuilder
+			->select('uid', 'doktype', 'perms_everybody', 'perms_userid', 'perms_user', 'perms_groupid', 'perms_group')
+			->from('pages')
+			->where(
+				$queryBuilder->expr()->eq(
+					'uid',
+					$queryBuilder->createNamedParameter($pageUid)
+				)
+			)
+			->executeQuery()
+			->fetchAssociative();
+
+		if (!$page || (int)$page['doktype'] !== 200) {
+			return false;
+		}
+
+		// Check if user has read access to the page (permission 1)
+		return $backendUser->doesUserHaveAccess($page, 1);
 	}
 }
