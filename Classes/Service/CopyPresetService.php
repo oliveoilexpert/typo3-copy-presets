@@ -6,6 +6,7 @@ namespace UBOS\CopyPresets\Service;
 
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Utility\DebugUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
@@ -140,7 +141,7 @@ class CopyPresetService
 	 *
 	 * @throws \RuntimeException if user doesn't have permission to copy the element
 	 */
-	public function copyPreset(int $presetUid, int $presetPid, int $targetPid, int $targetColPos, int $uidPid, int $sysLanguageUid = 0): ?int
+	public function copyPreset(int $presetUid, int $presetPid, int $targetPid, int $targetColPos, int $uidPid, int $sysLanguageUid = 0, int $txContainerParent = 0): ?int
 	{
 		// Verify user has access to the preset element's page
 		if (!$this->canUserCopyElement($presetUid, $presetPid)) {
@@ -149,6 +150,7 @@ class CopyPresetService
 				1234567890
 			);
 		}
+
 
 		// Initialize DataHandler
 		$dataHandler = GeneralUtility::makeInstance(DataHandler::class);
@@ -174,6 +176,7 @@ class CopyPresetService
 						'update' => [
 							'colPos' => $targetColPos,
 							'sys_language_uid' => $sysLanguageUid,
+							'tx_container_parent' => $txContainerParent,
 						],
 					],
 				],
@@ -203,6 +206,11 @@ class CopyPresetService
 		// Admin users can copy everything
 		if ($backendUser->isAdmin()) {
 			return true;
+		}
+
+		// Check if user has modify rights on tt_content table
+		if (!$backendUser->check('tables_modify', 'tt_content')) {
+			return false;
 		}
 
 		// Check if page is a preset page (doktype 200)

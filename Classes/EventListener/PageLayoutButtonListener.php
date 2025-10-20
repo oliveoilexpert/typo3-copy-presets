@@ -53,6 +53,7 @@ class PageLayoutButtonListener
 					tabindex="0" >
 					<typo3-backend-icon 
 					size="small" identifier="actions-copy-preset"></typo3-backend-icon>
+					Paste preset
 				</typo3-backend-new-content-element-wizard-button>
 			</template>
 			<script type="application/json" id="tx-copy-presets-config">' .

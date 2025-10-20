@@ -4,24 +4,27 @@ declare(strict_types=1);
 
 namespace UBOS\CopyPresets\Controller;
 
-use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Http\RedirectResponse;
 use TYPO3\CMS\Core\Http\HtmlResponse;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Messaging\FlashMessage;
+use TYPO3\CMS\Core\Type\ContextualFeedbackSeverity;
+use TYPO3\CMS\Core\Messaging\FlashMessageService;
+use TYPO3\CMS\Backend\Attribute\AsController;
 use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Backend\View\BackendViewFactory;
-use TYPO3\CMS\Core\Messaging\FlashMessage;
-use TYPO3\CMS\Core\Messaging\FlashMessageService;
-use TYPO3\CMS\Core\Type\ContextualFeedbackSeverity;
-use UBOS\CopyPresets\Service\CopyPresetService;
 
-#[Autoconfigure(public: true)]
+use UBOS\CopyPresets\Service\CopyPresetService;
+use UBOS\CopyPresets\Service\ContentDefenderService;
+
+#[AsController]
 class CopyPresetWizardController
 {
 	public function __construct(
 		private readonly CopyPresetService $copyPresetService,
+		private readonly ContentDefenderService $contentDefenderService,
 		private readonly UriBuilder $uriBuilder,
 		private readonly BackendViewFactory $backendViewFactory,
 		private readonly FlashMessageService $flashMessageService,
@@ -37,6 +40,7 @@ class CopyPresetWizardController
 		$languageUid = (int)($queryParams['sys_language_uid'] ?? 0);
 		$colPos = (int)($queryParams['colPos'] ?? 0);
 		$uidPid = (int)($queryParams['uid_pid'] ?? 0);
+		$txContainerParent = (int)($queryParams['tx_container_parent'] ?? 0);
 
 		// Get grouped presets - automatically filtered by user permissions
 		$groupedPresets = $this->copyPresetService->getGroupedPresets();
@@ -46,11 +50,25 @@ class CopyPresetWizardController
 			return new HtmlResponse($view->render('NoPresets'));
 		}
 
+		// Get content_defender restrictions for the target colPos
+		$allowedCTypes = $this->contentDefenderService->getAllowedCTypesForColumn($targetPid, $colPos, $txContainerParent);
+
 		// Convert to format expected by typo3-backend-new-record-wizard
 		$categories = [];
 		foreach ($groupedPresets as $group) {
+			// Filter elements by content_defender restrictions
+			$filteredElements = $this->contentDefenderService->filterPresetsByAllowedCTypes(
+				$group['elements'],
+				$allowedCTypes
+			);
+
+			// Skip empty groups
+			if (empty($filteredElements)) {
+				continue;
+			}
+
 			$items = [];
-			foreach ($group['elements'] as $element) {
+			foreach ($filteredElements as $element) {
 				$executeUrl = (string)$this->uriBuilder->buildUriFromRoute(
 					'copy_preset_execute',
 					[
@@ -60,6 +78,7 @@ class CopyPresetWizardController
 						'sys_language_uid' => $languageUid,
 						'colPos' => $colPos,
 						'uid_pid' => $uidPid,
+						'tx_container_parent' => $txContainerParent,
 					]
 				);
 
@@ -78,6 +97,12 @@ class CopyPresetWizardController
 				'label' => $group['pageTitle'],
 				'items' => $items,
 			];
+		}
+
+		// Check if all groups were filtered out
+		if (empty($categories)) {
+			$view = $this->backendViewFactory->create($request);
+			return new HtmlResponse($view->render('NoPresets'));
 		}
 
 		$view = $this->backendViewFactory->create($request);
@@ -101,6 +126,7 @@ class CopyPresetWizardController
 		$colPos = (int)($queryParams['colPos'] ?? 0);
 		$uidPid = (int)($queryParams['uid_pid'] ?? 0);
 		$languageUid = (int)($queryParams['sys_language_uid'] ?? 0);
+		$txContainerParent = (int)($queryParams['tx_container_parent'] ?? 0);
 
 		if ($presetUid === 0 || $targetPid === 0) {
 			$this->addFlashMessage(
@@ -119,7 +145,8 @@ class CopyPresetWizardController
 				$targetPid,
 				$colPos,
 				$uidPid,
-				$languageUid
+				$languageUid,
+				$txContainerParent
 			);
 
 			if ($newUid) {

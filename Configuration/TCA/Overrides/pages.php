@@ -14,8 +14,3 @@ $GLOBALS['TCA']['pages']['columns']['doktype']['config']['items'][] = [
 
 // Add icon for pages tree
 $GLOBALS['TCA']['pages']['ctrl']['typeicon_classes'][200] = 'apps-pagetree-copy-preset';
-
-// Allow backend users to create this page type
-\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addUserTSConfig(
-	'options.pageTree.doktypesToShowInNewPageDragArea := addToList(200)'
-);
