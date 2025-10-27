@@ -4,7 +4,7 @@ Allows editors to quickly paste content elements from a list of "copy presets" i
 
 ## Features
 
-- 📋 **Quick Content Copying**: Add a "Copy Preset" button next to every "Create new content" button in the page module
+- 📋 **Quick Content Copying**: Add a "Paste preset" button next to every "Create new content" button in the page module
 - 📁 **Organized Presets**: Group presets by page for easy organization
 - 🎨 **Wizard Interface**: Familiar wizard UI similar to the new content element wizard
 - 📦 **Container Support**: Full support for b13/container - copies containers with all children
@@ -12,16 +12,11 @@ Allows editors to quickly paste content elements from a list of "copy presets" i
 
 ## Requirements
 
-- TYPO3 v13.0 or higher
-- PHP 8.2 or higher
+- TYPO3 v13.4 or higher
 
 ## Installation
 
-1. **Place the extension** in `typo3conf/ext/copy_presets/` or install via Composer (if packaged)
-
-2. **Activate the extension** in the Extension Manager
-
-3. **Clear caches** in the Admin Tools
+**Place the extension** in `typo3conf/ext/copy_presets/` or install via Composer (if packaged)
 
 ## Usage
 
@@ -29,7 +24,7 @@ Allows editors to quickly paste content elements from a list of "copy presets" i
 
 1. **Create a Copy Preset Page**:
     - Create a new page in your page tree
-    - Set the page type to "Copy Preset Page" (doktype 200)
+    - Set the page type to "Copy Preset Page" (doktype 3151625)
     - Name it descriptively (e.g., "Marketing Templates", "Standard Sections")
 
 2. **Add Content Elements**:
@@ -54,7 +49,7 @@ Allows editors to quickly paste content elements from a list of "copy presets" i
 
 ### New Page Type (doktype)
 
-The extension adds a new page type with `doktype = 200`:
+The extension adds a new page type with `doktype = 3151625`:
 - **Name**: Copy Preset Page
 - **Icon**: Document with copy symbol
 - **Behavior**: Works like a normal page, visible in frontend
@@ -63,70 +58,25 @@ The extension adds a new page type with `doktype = 200`:
 
 No database changes required - uses standard TYPO3 tables and fields.
 
-### File Structure
-
-```
-copy_presets/
-├── Classes/
-│   ├── Controller/
-│   │   └── CopyPresetWizardController.php
-│   ├── EventListener/
-│   │   └── PageLayoutButtonListener.php
-│   └── Service/
-│       └── CopyPresetService.php
-├── Configuration/
-│   ├── Backend/
-│   │   └── Routes.php
-│   ├── TCA/
-│   │   └── Overrides/
-│   │       └── pages.php
-│   ├── Icons.php
-│   └── Services.yaml
-├── Resources/
-│   ├── Private/
-│   │   ├── Language/
-│   │   │   └── locallang_tca.xlf
-│   │   └── Templates/
-│   │       ├── Wizard.html
-│   │       └── NoPresets.html
-│   └── Public/
-│       └── Icons/
-│           ├── doktype-copypreset.svg
-│           └── copy-preset-button.svg
-├── ext_emconf.php
-└── ext_localconf.php
-```
-
 ## How It Works
 
 1. **Button Injection**: The `PageLayoutButtonListener` adds buttons via JavaScript next to each "Create new content" button
 
-2. **Preset Discovery**: The `CopyPresetService` finds all pages with `doktype = 200` and retrieves their content elements
+2. **Preset Discovery**: The `CopyPresetService` finds all pages with `doktype = 3151625` and retrieves their content elements
 
 3. **Wizard Display**: The controller renders a wizard showing presets grouped by their parent page
 
 4. **Copying**: When a preset is selected, `DataHandler->copyRecord()` is used to properly copy the content element with all relations
 
-## Container Extension Support
+
+## Container and Content Defender Extension Support
 
 The extension automatically supports the b13/container extension because it uses TYPO3's DataHandler for copying. This ensures:
 - Container elements are copied with all their children
 - Nested containers work correctly
 - All references and relations are maintained
 
-## Customization
-
-### Change the doktype number
-
-Edit `Configuration/TCA/Overrides/pages.php` and change `200` to your preferred number.
-
-### Customize the wizard appearance
-
-Edit `Resources/Private/Templates/Wizard.html` to modify the wizard layout and styling.
-
-### Add permissions
-
-You can restrict which backend user groups can create Copy Preset Pages using standard TYPO3 page permissions.
+Rules set by Content Defender are also respected in the wizard list.
 
 ## Troubleshooting
 
@@ -136,7 +86,7 @@ You can restrict which backend user groups can create Copy Preset Pages using st
 - Verify the extension is activated
 
 ### No presets show in wizard
-- Create at least one page with `doktype = 200`
+- Create at least one page with `doktype = 3151625`
 - Add content elements to that page
 - Clear caches
 
@@ -146,4 +96,4 @@ You can restrict which backend user groups can create Copy Preset Pages using st
 
 ## License
 
-GPL-2.0-or-later
+MIT

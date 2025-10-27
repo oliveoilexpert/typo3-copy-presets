@@ -28,7 +28,7 @@ class CopyPresetService
 	}
 
 	/**
-	 * Get all copy preset pages (doktype = 200) that the user has access to
+	 * Get all copy preset pages (doktype = 3151625) that the user has access to
 	 */
 	public function getCopyPresetPages(): array
 	{
@@ -45,7 +45,7 @@ class CopyPresetService
 			->where(
 				$queryBuilder->expr()->eq(
 					'doktype',
-					$queryBuilder->createNamedParameter(200)
+					$queryBuilder->createNamedParameter(3151625)
 				)
 			);
 
@@ -213,7 +213,7 @@ class CopyPresetService
 			return false;
 		}
 
-		// Check if page is a preset page (doktype 200)
+		// Check if page is a preset page (doktype 3151625)
 		$queryBuilder = $this->connectionPool->getQueryBuilderForTable('pages');
 		$queryBuilder->getRestrictions()
 			->removeAll()
@@ -231,7 +231,7 @@ class CopyPresetService
 			->executeQuery()
 			->fetchAssociative();
 
-		if (!$page || (int)$page['doktype'] !== 200) {
+		if (!$page || (int)$page['doktype'] !== 3151625) {
 			return false;
 		}
 
