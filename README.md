@@ -45,19 +45,6 @@ Allows editors to quickly paste content elements from a list of "copy presets" i
 5. Click on the preset you want to copy
 6. The element will be copied to the target position
 
-## Technical Details
-
-### New Page Type (doktype)
-
-The extension adds a new page type with `doktype = 3151625`:
-- **Name**: Copy Preset Page
-- **Icon**: Document with copy symbol
-- **Behavior**: Works like a normal page, visible in frontend
-
-### Database Changes
-
-No database changes required - uses standard TYPO3 tables and fields.
-
 ## How It Works
 
 1. **Button Injection**: The `PageLayoutButtonListener` adds buttons via JavaScript next to each "Create new content" button
