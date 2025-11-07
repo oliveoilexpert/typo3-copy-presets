@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+    <file source-language="en" datatype="plaintext" original="EXT:copy_presets/Resources/Private/Language/locallang.xlf" date="2024-01-01T00:00:00Z" product-name="copy_presets">
+        <header/>
+        <body>
+            <trans-unit id="pages.doktype.3151625" resname="pages.doktype.3151625">
+                <source>Copy Preset Page</source>
+            </trans-unit>
+
+            <trans-unit id="extconf.includeContainerChildrenInWizard.label" resname="extconf.includeContainerChildrenInWizard.label">
+                <source>Include container child elements in preset list (excluded by default)</source>
+            </trans-unit>
+
+            <trans-unit id="label.paste_preset" resname="label.paste_preset">
+                <source>Paste preset</source>
+            </trans-unit>
+
+            <trans-unit id="label.no_presets_available.header" resname="label.no_presets_available.header">
+                <source>No Copy Presets Available</source>
+            </trans-unit>
+            <trans-unit id="label.no_presets_available.desc" resname="label.no_presets_available.desc">
+                <source>There are currently no copy presets configured in your TYPO3 installation.</source>
+            </trans-unit>
+
+            <trans-unit id="label.how_to_create_presets.header" resname="label.how_to_create_presets.header">
+                <source>How to create Copy Presets:</source>
+            </trans-unit>
+            <trans-unit id="label.how_to_create_presets.step1" resname="label.how_to_create_presets.step1">
+                <source>Create a new page with page type "Copy Preset Page" (doktype 3151625)</source>
+            </trans-unit>
+            <trans-unit id="label.how_to_create_presets.step2" resname="label.how_to_create_presets.step2">
+                <source>Add content elements to this page that you want to use as templates</source>
+            </trans-unit>
+            <trans-unit id="label.how_to_create_presets.step3" resname="label.how_to_create_presets.step3">
+                <source>These elements will then appear in this wizard for quick copying</source>
+            </trans-unit>
+
+        </body>
+    </file>
+</xliff>

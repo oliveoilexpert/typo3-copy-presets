@@ -1,0 +1,2 @@
+# cat=basic; type=boolean; label=LLL:EXT:copy_presets/Resources/Private/Language/locallang.xlf:extconf.includeContainerChildrenInWizard.label
+includeContainerChildrenInWizard = false

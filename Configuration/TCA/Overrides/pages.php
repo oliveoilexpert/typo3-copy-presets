@@ -6,7 +6,7 @@ defined('TYPO3') or die();
 
 // Add new doktype for Copy Preset Pages
 $GLOBALS['TCA']['pages']['columns']['doktype']['config']['items'][] = [
-	'label' => 'LLL:EXT:copy_presets/Resources/Private/Language/locallang_tca.xlf:pages.doktype.3151625',
+	'label' => 'LLL:EXT:copy_presets/Resources/Private/Language/locallang.xlf:pages.doktype.3151625',
 	'value' => 3151625,
 	'icon' => 'apps-pagetree-copy-preset',
 	'group' => 'special',

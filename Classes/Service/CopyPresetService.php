@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace UBOS\CopyPresets\Service;
 
+use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Database\ConnectionPool;
-use TYPO3\CMS\Core\Utility\DebugUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
@@ -16,7 +16,8 @@ class CopyPresetService
 {
 	public function __construct(
 		private readonly ConnectionPool $connectionPool,
-		private readonly IconFactory $iconFactory
+		private readonly IconFactory $iconFactory,
+		private readonly ExtensionConfiguration $extensionConfiguration
 	) {}
 
 	/**
@@ -83,6 +84,9 @@ class CopyPresetService
 	 */
 	public function getGroupedPresets(): array
 	{
+		$includeContainerChildrenInWizard = $this->extensionConfiguration
+			->get('copy_presets', 'includeContainerChildrenInWizard') ?? false;
+
 		$presetPages = $this->getCopyPresetPages();
 
 		if (empty($presetPages)) {
@@ -97,15 +101,30 @@ class CopyPresetService
 		$queryBuilder->getRestrictions()
 			->removeByType(\TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction::class);
 
-		$contentElements = $queryBuilder
-			->select('uid', 'pid', 'CType', 'header', 'colPos')
-			->from('tt_content')
-			->where(
+		// If configured, include container child elements, exclude by default
+		if (!$includeContainerChildrenInWizard) {
+			$queryBuilder->where(
+				$queryBuilder->expr()->in(
+					'pid',
+					$queryBuilder->createNamedParameter($pageUids, \Doctrine\DBAL\ArrayParameterType::INTEGER)
+				),
+				$queryBuilder->expr()->or(
+					$queryBuilder->expr()->eq('tx_container_parent', 0),
+					$queryBuilder->expr()->isNull('tx_container_parent')
+				)
+			);
+		} else {
+			$queryBuilder->where(
 				$queryBuilder->expr()->in(
 					'pid',
 					$queryBuilder->createNamedParameter($pageUids, \Doctrine\DBAL\ArrayParameterType::INTEGER)
 				)
-			)
+			);
+		}
+
+		$contentElements = $queryBuilder
+			->select('uid', 'pid', 'CType', 'header', 'colPos')
+			->from('tt_content')
 			->orderBy('pid')
 			->addOrderBy('sorting')
 			->executeQuery()

@@ -1,7 +1,6 @@
 /**
  * Copy Preset Wizard JavaScript Module
  */
-console.log('Copy Preset Wizard module loading...');
 
 class CopyPresetWizard {
 	constructor() {

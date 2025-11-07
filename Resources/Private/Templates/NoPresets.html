@@ -5,15 +5,15 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-body text-center">
-                    <h2 class="card-title">No Copy Presets Available</h2>
-                    <p class="card-text">There are currently no copy presets configured in your TYPO3 installation.</p>
+                    <h2 class="card-title">{f:translate(key:'label.no_presets_available.header')}</h2>
+                    <p class="card-text">{f:translate(key:'label.no_presets_available.desc')}</p>
 
                     <div class="alert alert-info text-start mt-4">
-                        <strong>How to create copy presets:</strong>
+                        <strong>{f:translate(key:'label.how_to_create_presets.header')}</strong>
                         <ol class="mb-0 mt-2">
-                            <li>Create a new page with page type "Copy Preset Page" (doktype 3151625)</li>
-                            <li>Add content elements to this page that you want to use as templates</li>
-                            <li>These elements will then appear in this wizard for quick copying</li>
+                            <li>{f:translate(key:'label.how_to_create_presets.step1')}</li>
+                            <li>{f:translate(key:'label.how_to_create_presets.step2')}</li>
+                            <li>{f:translate(key:'label.how_to_create_presets.step3')}</li>
                         </ol>
                     </div>
                 </div>

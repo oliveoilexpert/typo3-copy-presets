@@ -8,6 +8,7 @@ use TYPO3\CMS\Core\Attribute\AsEventListener;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Backend\Controller\Event\ModifyPageLayoutContentEvent;
 use TYPO3\CMS\Backend\Routing\UriBuilder;
+use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
 use UBOS\CopyPresets\Service\CopyPresetService;
 
 class PageLayoutButtonListener
@@ -39,6 +40,8 @@ class PageLayoutButtonListener
 			'id' => $pageId,
 		]);
 
+		$buttonLabel = LocalizationUtility::translate('label.paste_preset', 'copy_presets');
+
 		// Pass wizard URL via data attribute on body instead of inline script (CSP-safe)
 		$this->pageRenderer->addBodyContent(
 			'
@@ -53,7 +56,7 @@ class PageLayoutButtonListener
 					tabindex="0" >
 					<typo3-backend-icon 
 					size="small" identifier="actions-copy-preset"></typo3-backend-icon>
-					Paste preset
+					' . $buttonLabel . '
 				</typo3-backend-new-content-element-wizard-button>
 			</template>
 			<script type="application/json" id="tx-copy-presets-config">' .
