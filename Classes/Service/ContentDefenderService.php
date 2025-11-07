@@ -7,7 +7,6 @@ namespace UBOS\CopyPresets\Service;
 use TYPO3\CMS\Core\Package\PackageManager;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Database\ConnectionPool;
-use TYPO3\CMS\Core\Utility\DebugUtility;
 
 class ContentDefenderService
 {
