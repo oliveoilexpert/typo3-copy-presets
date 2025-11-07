@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace UBOS\CopyPresets\Controller;
+namespace Amdeu\CopyPresets\Controller;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -16,8 +16,8 @@ use TYPO3\CMS\Backend\Attribute\AsController;
 use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Backend\View\BackendViewFactory;
 
-use UBOS\CopyPresets\Service\CopyPresetService;
-use UBOS\CopyPresets\Service\ContentDefenderService;
+use Amdeu\CopyPresets\Service\CopyPresetService;
+use Amdeu\CopyPresets\Service\ContentDefenderService;
 
 #[AsController]
 class CopyPresetWizardController

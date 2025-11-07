@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use UBOS\CopyPresets\Controller\CopyPresetWizardController;
+use Amdeu\CopyPresets\Controller\CopyPresetWizardController;
 
 return [
 	'copy_preset_wizard' => [

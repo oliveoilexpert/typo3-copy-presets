@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace UBOS\CopyPresets\Service;
+namespace Amdeu\CopyPresets\Service;
 
 use TYPO3\CMS\Core\Package\PackageManager;
 use TYPO3\CMS\Core\Utility\GeneralUtility;

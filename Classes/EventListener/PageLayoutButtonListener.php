@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace UBOS\CopyPresets\EventListener;
+namespace Amdeu\CopyPresets\EventListener;
 
 use TYPO3\CMS\Core\Attribute\AsEventListener;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Backend\Controller\Event\ModifyPageLayoutContentEvent;
 use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
-use UBOS\CopyPresets\Service\CopyPresetService;
+use Amdeu\CopyPresets\Service\CopyPresetService;
 
 class PageLayoutButtonListener
 {
@@ -65,6 +65,6 @@ class PageLayoutButtonListener
 		);
 
 		// Load the ES6 module
-		$this->pageRenderer->loadJavaScriptModule('@ubos/copy-presets/copy-preset-wizard.js');
+		$this->pageRenderer->loadJavaScriptModule('@amdeu/copy-presets/copy-preset-wizard.js');
 	}
 }

@@ -9,12 +9,15 @@
   },
   "autoload": {
     "psr-4": {
-      "UBOS\\CopyPresets\\": "Classes/"
+      "Amdeu\\CopyPresets\\": "Classes/"
     }
   },
   "extra": {
     "typo3/cms": {
       "extension-key": "copy_presets"
     }
+  },
+  "replace": {
+    "typo3-ter/container": "self.version"
   }
 }
