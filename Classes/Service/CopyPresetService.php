@@ -7,6 +7,7 @@ namespace UBOS\CopyPresets\Service;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Package\PackageManager;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
@@ -15,6 +16,7 @@ use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
 class CopyPresetService
 {
 	public function __construct(
+		private readonly PackageManager $packageManager,
 		private readonly ConnectionPool $connectionPool,
 		private readonly IconFactory $iconFactory,
 		private readonly ExtensionConfiguration $extensionConfiguration
@@ -26,6 +28,14 @@ class CopyPresetService
 	private function getBackendUser(): BackendUserAuthentication
 	{
 		return $GLOBALS['BE_USER'];
+	}
+
+	/**
+	 * Check if container extension is installed and active
+	 */
+	public function isContainerActive(): bool
+	{
+		return $this->packageManager->isPackageActive('container');
 	}
 
 	/**
@@ -102,7 +112,7 @@ class CopyPresetService
 			->removeByType(\TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction::class);
 
 		// If configured, include container child elements, exclude by default
-		if (!$includeContainerChildrenInWizard) {
+		if (!$includeContainerChildrenInWizard && $this->isContainerActive()) {
 			$queryBuilder->where(
 				$queryBuilder->expr()->in(
 					'pid',
@@ -186,17 +196,20 @@ class CopyPresetService
 		// Use the extended copy command format with 'update' array
 		// This is the same format used by TYPO3's standard copy/paste buttons
 		// and ensures all DataHandler hooks (including container extension) work correctly
+		$update = [
+			'colPos' => $targetColPos,
+			'sys_language_uid' => $sysLanguageUid,
+		];
+		if ($this->isContainerActive()) {
+			$update['tx_container_parent'] = $txContainerParent;
+		}
 		$cmd = [
 			'tt_content' => [
 				$presetUid => [
 					'copy' => [
 						'action' => 'paste',
 						'target' => $target,
-						'update' => [
-							'colPos' => $targetColPos,
-							'sys_language_uid' => $sysLanguageUid,
-							'tx_container_parent' => $txContainerParent,
-						],
+						'update' => $update,
 					],
 				],
 			],

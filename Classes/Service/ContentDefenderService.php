@@ -25,6 +25,14 @@ class ContentDefenderService
 	}
 
 	/**
+	 * Check if container extension is installed and active
+	 */
+	public function isContainerActive(): bool
+	{
+		return $this->packageManager->isPackageActive('container');
+	}
+
+	/**
 	 * Get allowed CTypes for a specific colPos on a page
 	 * Returns null if no restrictions, empty array if nothing allowed, or array of allowed CTypes
 	 */
@@ -34,7 +42,7 @@ class ContentDefenderService
 			return null;
 		}
 		try {
-			if ($containerUid > 0) {
+			if ($containerUid > 0 && $this->isContainerActive()) {
 				$containerTcaRegistry = GeneralUtility::makeInstance(\B13\Container\Tca\Registry::class);
 				$queryBuilder = $this->connectionPool->getQueryBuilderForTable('tt_content');
 				$containerElement = $queryBuilder
