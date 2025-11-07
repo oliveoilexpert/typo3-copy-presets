@@ -1,10 +1,10 @@
 # TYPO3 Copy Presets Extension
 
-Allows editors to quickly paste content elements from a list of "copy presets" in the page layout module.
+Allows editors to quickly copy content elements from a list of "copy presets" in the page layout module.
 
 ## Features
 
-- 📋 **Quick Content Copying**: Add a "Paste preset" button next to every "Create new content" button in the page module
+- 📋 **Quick Content Copying**: Add a "Copy preset" button next to every "Create new content" button in the page module
 - 📁 **Organized Presets**: Group presets by page for easy organization
 - 🎨 **Wizard Interface**: Familiar wizard UI similar to the new content element wizard
 - 📦 **Container Support**: Full support for b13/container - copies containers with all children

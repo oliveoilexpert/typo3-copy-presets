@@ -40,7 +40,7 @@ class PageLayoutButtonListener
 			'id' => $pageId,
 		]);
 
-		$buttonLabel = LocalizationUtility::translate('label.paste_preset', 'copy_presets');
+		$buttonLabel = LocalizationUtility::translate('label.copy_preset', 'copy_presets');
 
 		// Pass wizard URL via data attribute on body instead of inline script (CSP-safe)
 		$this->pageRenderer->addBodyContent(

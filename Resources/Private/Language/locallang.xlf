@@ -11,8 +11,8 @@
                 <source>Include container child elements in preset list (excluded by default)</source>
             </trans-unit>
 
-            <trans-unit id="label.paste_preset" resname="label.paste_preset">
-                <source>Paste preset</source>
+            <trans-unit id="label.copy_preset" resname="label.copy_preset">
+                <source>Copy preset</source>
             </trans-unit>
 
             <trans-unit id="label.no_presets_available.header" resname="label.no_presets_available.header">

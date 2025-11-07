@@ -2,7 +2,7 @@
 
 $EM_CONF[$_EXTKEY] = [
 	'title' => 'Copy Presets',
-	'description' => 'Allows editors to quickly paste content elements from a list of copy presets in the page layout module',
+	'description' => 'Allows editors to quickly copy content elements from a list of copy presets in the page layout module',
 	'category' => 'be',
 	'author' => 'Amadeus Kiener',
 	'state' => 'stable',
