@@ -1,5 +1,5 @@
 {
-  "name": "oliveoilexpert/typo3-copy-presets",
+  "name": "amdeu/typo3-copy-presets",
   "type": "typo3-cms-extension",
   "description": "Copy Presets",
   "license": "GPL-2.0-or-later",
@@ -18,6 +18,6 @@
     }
   },
   "replace": {
-    "typo3-ter/container": "self.version"
+    "typo3-ter/copy_presets": "self.version"
   }
 }
